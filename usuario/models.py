@@ -10,9 +10,9 @@ class User(AbstractUser):
     USERNAME_FIELD = 'username'
 
     class Meta:
-        db_table = 'users'
+        db_table = 'usuario'
         verbose_name = 'User'
-        verbose_name_plural = 'Users'
+        verbose_name_plural = 'Usuairios'
 
 class Role(models.Model):
     PERMISION_CHOICES = [

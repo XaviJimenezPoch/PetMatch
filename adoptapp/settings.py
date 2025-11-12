@@ -37,14 +37,14 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'users',
+    'usuario',
 ]
 
-AUTH_USER_MODEL = 'users.User'
+AUTH_USER_MODEL = 'usuario.User'
 
-LOGIN_URL = '/users/login'
-LOGIN_REDIRECT_URL = '/users/dashboard'
-LOGIN_REDIRECT_URL = '/users/login'
+LOGIN_URL = '/usuario/login'
+LOGIN_REDIRECT_URL = '/usuario/dashboard'
+LOGIN_REDIRECT_URL = '/usuario/login'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
