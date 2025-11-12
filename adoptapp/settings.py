@@ -44,7 +44,7 @@ AUTH_USER_MODEL = 'usuario.User'
 
 LOGIN_URL = '/usuario/login'
 LOGIN_REDIRECT_URL = '/usuario/dashboard'
-LOGIN_REDIRECT_URL = '/usuario/login'
+LOGOUT_REDIRECT_URL = '/usuario/login'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
