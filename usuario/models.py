@@ -6,6 +6,8 @@ class User(AbstractUser):
     user_id = models.AutoField(primary_key=True)
     username = models.CharField(max_length=150, unique=True)
     password = models.CharField(max_length=128)
+    email = models.EmailField(unique=True)
+    city = models.CharField(max_length=100)
 
     USERNAME_FIELD = 'username'
 
