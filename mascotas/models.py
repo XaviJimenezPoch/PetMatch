@@ -15,8 +15,6 @@ class Mascota(models.Model):
     edad = models.PositiveIntegerField(help_text="Edad en años")
     ubicacion = models.CharField(max_length=100, default="Ciudad")
     
-    # Relación con el usuario que sube la mascota
-    propietario = models.ForeignKey(User, on_delete=models.CASCADE)
     
     fecha_creacion = models.DateTimeField(auto_now_add=True)
     fecha_actualizacion = models.DateTimeField(auto_now=True)
