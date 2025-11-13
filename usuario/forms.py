@@ -67,4 +67,4 @@ class LoginForm(AuthenticationForm):
     class Meta:
 
         model = User
-        fields = ['username', 'email', 'city', 'password']
+        fields = ['username', 'email', 'city', 'password', 'zoo_number']
