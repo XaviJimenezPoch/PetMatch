@@ -45,7 +45,7 @@ class UserRole(models.Model):
         db_table = 'user_roles'
         verbose_name = 'User role'
         verbose_name_plural = 'User roles'
-        unique_together = ('user_id', 'role') #No se le puede poner el mismo rol dos veces al mismo usuario
+        unique_together = ('user_id', 'role') # No se le puede poner el mismo rol dos veces al mismo usuario
 
     def __str__(self):
         return f"{self.user_id.username} - {self.role.role_name}"
