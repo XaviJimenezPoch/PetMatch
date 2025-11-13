@@ -43,7 +43,7 @@ INSTALLED_APPS = [
     'mascotas',
 ]
 
-AUTH_USER_MODEL = 'usuario.User'
+AUTH_USER_MODEL = 'usuario.Usuario'
 
 LOGIN_URL = '/usuario/login'
 LOGIN_REDIRECT_URL = '/usuario/dashboard'

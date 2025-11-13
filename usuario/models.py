@@ -1,7 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 
-class User(AbstractUser):
+class Usuario(AbstractUser):
 
     user_id = models.AutoField(primary_key=True)
     username = models.CharField(max_length=150, unique=True)
@@ -38,7 +38,7 @@ class Role(models.Model):
     
 class UserRole(models.Model):
 
-    user_id = models.ForeignKey(User, on_delete=models.CASCADE)
+    user_id = models.ForeignKey(Usuario, on_delete=models.CASCADE)
     role = models.ForeignKey(Role, on_delete=models.CASCADE)
 
     class Meta:
