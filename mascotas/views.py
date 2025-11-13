@@ -4,13 +4,13 @@ from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from .models import Mascota
-from usuario.models import UserRole
+from usuario.models import Usuario #CAMBIADO
 import json
 
 
 def es_protectora(user):
     """Verifica si el usuario tiene rol de protectora"""
-    return UserRole.objects.filter(
+    return Usuario.objects.filter( #CAMBIADO
         user_id=user, 
         role__role_name='Protectora'
     ).exists()

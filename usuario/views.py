@@ -38,59 +38,133 @@
 from rest_framework import viewsets, status
 from rest_framework.response import Response
 from rest_framework.decorators import action
-from rest_framework.permissions import IsAuthenticated, AllowAny
-from django.contrib.auth.hashers import make_password, check_password
+from rest_framework.permissions import IsAuthenticated, AllowAny, BasePermission
+from django.contrib.auth import authenticate
 from rest_framework.authtoken.models import Token
 from .models import Usuario
-from .serializers import UsuarioSerializer, UsuarioCreateSerializer, LoginSerializer
+from .serializers import UsuarioSerializer, UsuarioCreateSerializer
+from django.contrib.auth.hashers import check_password 
+from django.db import models
+from rest_framework_simplejwt.tokens import RefreshToken
+
+
+#hablar con xavi: qué puede ver la gente? 
+#los usuarios sólo pueden ver su propio usuario
+#los usuarios pueden ver todas las protectoras
+#las protectoras pueden ver todos los usuarios??????
+#las protectoras pueden ver otras protectoras
+#c ada uno se edita lo suyo
+
+
+
+class UsuarioPermissions(BasePermission):
+    """
+    Permisos personalitzats per usuaris segons rol
+    """
+    
+    def has_permission(self, request, view):
+        # Registre i login són públics
+        if view.action in ['create', 'login']:
+            return True
+        
+        # La resta necessita autenticació
+        return request.user and request.user.is_authenticated
+    
+    def has_object_permission(self, request, view, obj):
+        user = request.user
+        
+        # Admin pot fer tot
+        if user.role == 'admin':
+            return True
+        
+        # Per veure perfils (GET)
+        if request.method in ['GET', 'HEAD', 'OPTIONS']:
+            # Usuaris només poden veure:
+            if user.role == 'usuario':
+                # - El seu propi perfil
+                if obj == user:
+                    return True
+                # - Perfils de protectores
+                if obj.role == 'protectora':
+                    return True
+                # - NO altres usuaris
+                return False
+            
+            # Protectores poden veure:
+            elif user.role == 'protectora':
+                # - El seu propi perfil
+                if obj == user:
+                    return True
+                # - Altres protectores
+                if obj.role == 'protectora':
+                    return True
+                # - Usuaris (per adopcions)
+                if obj.role == 'usuario':
+                    return True
+                # - NO admins (llevat del seu propi si fos admin)
+                return False
+        
+        # Per editar/eliminar (PUT, PATCH, DELETE)
+        else:
+            # Admin pot editar qualsevol
+            if user.role == 'admin':
+                return True
+            # Tots els altres només poden editar-se a si mateixos
+            return obj == user
 
 class UsuarioViewSet(viewsets.ModelViewSet):
     """
-    ViewSet para manejar operaciones CRUD de usuarios via API REST
+    ViewSet amb sistema de permisos per rols
     """
     queryset = Usuario.objects.all()
     serializer_class = UsuarioSerializer
-    
-    def get_permissions(self):
-        """
-        Define permisos según la acción
-        """
-        if self.action in ['create', 'login']:
-            permission_classes = [AllowAny]  # Registro y login público
-        else:
-            permission_classes = [IsAuthenticated]  # Resto requiere autenticación
-        
-        return [permission() for permission in permission_classes]
+    permission_classes = [UsuarioPermissions]
     
     def get_serializer_class(self):
-        """
-        Devuelve el serializer apropiado según la acción
-        """
         if self.action == 'create':
             return UsuarioCreateSerializer
-        elif self.action == 'login':
-            return LoginSerializer
         return UsuarioSerializer
     
-    # CREATE - Registro de usuario
+    def get_queryset(self):
+        """
+        Filtra els usuaris segons permisos de visualització
+        """
+        user = self.request.user
+        
+        # Si no està autenticat, no retorna res
+        if not user.is_authenticated:
+            return Usuario.objects.none()
+        
+        # Admin veu tots els usuaris
+        if user.role == 'admin':
+            return Usuario.objects.all()
+        
+        # Usuaris veuen:
+        elif user.role == 'usuario':
+            # - Ell mateix + totes les protectores
+            return Usuario.objects.filter(
+                models.Q(id=user.id) | 
+                models.Q(role='protectora')
+            )
+        
+        # Protectores veuen:
+        elif user.role == 'protectora':
+            # - Ella mateixa + altres protectores + usuaris
+            return Usuario.objects.filter(
+                models.Q(id=user.id) | 
+                models.Q(role='protectora') | 
+                models.Q(role='usuario')
+            )
+        
+        return Usuario.objects.none()
+    
+    # CREATE - Registre (públic)
     def create(self, request, *args, **kwargs):
-        """
-        POST /api/usuarios/
-        Crea un nuevo usuario
-        """
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
-            # Encriptar la contraseña antes de guardar
-            validated_data = serializer.validated_data
-            validated_data['password'] = make_password(validated_data['password'])
-            
-            # Crear el usuario
-            usuario = Usuario.objects.create(**validated_data)
-            
-            # Crear token de autenticación
+            usuario = serializer.save()
             token, created = Token.objects.get_or_create(user=usuario)
             
-            # Devolver respuesta con usuario y token
             response_data = UsuarioSerializer(usuario).data
             response_data['token'] = token.key
             
@@ -98,157 +172,83 @@ class UsuarioViewSet(viewsets.ModelViewSet):
         
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
-    # READ - Lista de usuarios (GET /api/usuarios/)
-    def list(self, request, *args, **kwargs):
-        """
-        GET /api/usuarios/
-        Lista todos los usuarios (solo para admin)
-        """
-        queryset = self.get_queryset()
-        serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data)
-    
-    # READ - Detalle de usuario (GET /api/usuarios/{id}/)
-    def retrieve(self, request, *args, **kwargs):
-        """
-        GET /api/usuarios/{id}/
-        Obtiene un usuario específico
-        """
-        return super().retrieve(request, *args, **kwargs)
-    
-    # UPDATE - Actualizar usuario (PUT /api/usuarios/{id}/)
+    # UPDATE - Només admin o el propi usuari
     def update(self, request, *args, **kwargs):
-        """
-        PUT /api/usuarios/{id}/
-        Actualiza un usuario completo
-        """
         instance = self.get_object()
-        
-        # Solo el propio usuario puede editarse
-        if instance != request.user:
-            return Response({'error': 'No puedes editar otro usuario'}, 
-                          status=status.HTTP_403_FORBIDDEN)
-        
-        # Si hay password en los datos, encriptarlo
-        if 'password' in request.data:
-            request.data['password'] = make_password(request.data['password'])
-        
-        return super().update(request, *args, **kwargs)
     
-    # UPDATE - Actualizar parcial (PATCH /api/usuarios/{id}/)
+        if 'password' in request.data:
+            instance.set_password(request.data['password'])
+            instance.save()
+            request.data.pop('password')  
+    
+        return super().update(request, *args, **kwargs)
+
     def partial_update(self, request, *args, **kwargs):
-        """
-        PATCH /api/usuarios/{id}/
-        Actualiza campos específicos de un usuario
-        """
         instance = self.get_object()
         
-        # Solo el propio usuario puede editarse
-        if instance != request.user:
-            return Response({'error': 'No puedes editar otro usuario'}, 
-                          status=status.HTTP_403_FORBIDDEN)
-        
-        # Si hay password en los datos, encriptarlo
         if 'password' in request.data:
-            request.data['password'] = make_password(request.data['password'])
+            instance.set_password(request.data['password'])
+            instance.save()
+            request.data.pop('password') 
         
         return super().partial_update(request, *args, **kwargs)
     
-    # DELETE - Eliminar usuario (DELETE /api/usuarios/{id}/)
-    def destroy(self, request, *args, **kwargs):
-        """
-        DELETE /api/usuarios/{id}/
-        Elimina un usuario
-        """
-        instance = self.get_object()
-        
-        # Solo el propio usuario puede eliminarse
-        if instance != request.user:
-            return Response({'error': 'No puedes eliminar otro usuario'}, 
-                          status=status.HTTP_403_FORBIDDEN)
-        
-        return super().destroy(request, *args, **kwargs)
-    
-    # ACCIÓN PERSONALIZADA - Login
-    @action(detail=False, methods=['post'], url_path='login')
+    # LOGIN
+    @action(detail=False, methods=['post'], url_path='login', 
+        permission_classes=[AllowAny])
     def login(self, request):
-        """
-        POST /api/usuarios/login/
-        Autentica un usuario y devuelve token
-        """
-        serializer = self.get_serializer(data=request.data)
-        if serializer.is_valid():
-            username = serializer.validated_data['username']
-            password = serializer.validated_data['password']
-            
-            # Autenticar usuario
-            user = authenticate(username=username, password=password)
-            
-            if user:
-                # Obtener o crear token
-                token, created = Token.objects.get_or_create(user=user)
-                
-                # Devolver datos del usuario y token
-                response_data = UsuarioSerializer(user).data
-                response_data['token'] = token.key
-                
-                return Response(response_data, status=status.HTTP_200_OK)
-            
-            return Response({'error': 'Credenciales inválidas'}, 
-                          status=status.HTTP_401_UNAUTHORIZED)
+        # Login sense serializer - més simple
+        username = request.data.get('username')
+        password = request.data.get('password')
         
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        if not username or not password:
+            return Response({'error': 'Username y password requeridos'}, 
+                        status=status.HTTP_400_BAD_REQUEST)
+        
+        user = authenticate(username=username, password=password)
+        
+        if user:
+            refresh = RefreshToken.for_user(user)
+            access_token = str(refresh.access_token)
+        
+            response_data = UsuarioSerializer(user).data
+            response_data['access'] = access_token
+            response_data['refresh'] = str(refresh)
+            
+            return Response(response_data, status=status.HTTP_200_OK)
+        
+        return Response({'error': 'Credenciales inválidas'}, 
+                    status=status.HTTP_401_UNAUTHORIZED)
     
-    # ACCIÓN PERSONALIZADA - Logout
+    # LOGOUT
     @action(detail=False, methods=['post'], url_path='logout')
     def logout(self, request):
-        """
-        POST /api/usuarios/logout/
-        Cierra sesión eliminando el token
-        """
         try:
-            # Eliminar token del usuario actual
             request.user.auth_token.delete()
-            return Response({'message': 'Sesión cerrada correctamente'}, 
-                          status=status.HTTP_200_OK)
+            return Response({'message': 'Sesión cerrada correctamente'})
         except:
             return Response({'error': 'No hay sesión activa'}, 
                           status=status.HTTP_400_BAD_REQUEST)
     
-    # ACCIÓN PERSONALIZADA - Perfil actual
+    # PERFIL ACTUAL
     @action(detail=False, methods=['get'], url_path='profile')
     def profile(self, request):
-        """
-        GET /api/usuarios/profile/
-        Obtiene el perfil del usuario autenticado
-        """
         serializer = self.get_serializer(request.user)
         return Response(serializer.data)
     
-    # ACCIÓN PERSONALIZADA - Cambiar contraseña
+    # CANVIAR PASSWORD
     @action(detail=True, methods=['post'], url_path='change-password')
     def change_password(self, request, pk=None):
-        """
-        POST /api/usuarios/{id}/change-password/
-        Cambia la contraseña de un usuario
-        """
         user = self.get_object()
-        
-        # Solo el propio usuario puede cambiar su contraseña
-        if user != request.user:
-            return Response({'error': 'No puedes cambiar la contraseña de otro usuario'}, 
-                          status=status.HTTP_403_FORBIDDEN)
         
         current_password = request.data.get('current_password')
         new_password = request.data.get('new_password')
         
-        # Verificar contraseña actual
         if not check_password(current_password, user.password):
             return Response({'error': 'Contraseña actual incorrecta'}, 
                           status=status.HTTP_400_BAD_REQUEST)
         
-        # Cambiar contraseña
-        user.password = make_password(new_password)
+        user.set_password(new_password)  # Usar set_password en lloc de make_password
         user.save()
         
         return Response({'message': 'Contraseña cambiada correctamente'})

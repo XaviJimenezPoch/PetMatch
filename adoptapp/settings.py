@@ -38,10 +38,24 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'rest_framework_simplejwt',
     'corsheaders',
     'usuario',
     'mascotas',
 ]
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+}
+
+from datetime import timedelta
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),    # Token expira en 1h
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),       # Refresh en 1 dia
+    'ROTATE_REFRESH_TOKENS': True,
+}
 
 AUTH_USER_MODEL = 'usuario.Usuario'
 
