@@ -4,7 +4,7 @@ from .models import Usuario # Asume que tienes un modelo llamado Tarea
 class UsuarioSerializer(serializers.ModelSerializer):
     class Meta:
         model = Usuario
-        fields = ('user_id', 'username', 'password', 'email', 'city')
+        fields = '__all__'
         
 class UsuarioCreateSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
