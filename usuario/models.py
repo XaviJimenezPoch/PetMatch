@@ -1,10 +1,12 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+from multiselectfield import MultiSelectField
+# Hace falta instalar django-multiselectfield para poder seleccionar múltiples opciones en un campo
 
 class Usuario(AbstractUser):
 
     # AbstractUser ya incluye id, password y username (pero username lo dejo)
-    #REGISTRO RÁPIDO
+    # REGISTRO RÁPIDO
     # user_id = models.AutoField(primary_key=True)
     # password = models.CharField(max_length=128)
     username = models.CharField(max_length=150, unique=True)
@@ -17,7 +19,6 @@ class Usuario(AbstractUser):
         ('protectora', 'Protectora')
     ]
     
-    
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='usuario')
     USERNAME_FIELD = 'username'
     
@@ -28,8 +29,8 @@ class Usuario(AbstractUser):
     
 class PerfilUsuario(models.Model):
     usuario = models.OneToOneField(Usuario, on_delete=models.CASCADE, related_name='perfil_usuario')
-    #REGISTRO COMPLETO
-    #camps a consensuar entre tots
+    # REGISTRO COMPLETO
+    # camps a consensuar entre tots
     telefono = models.CharField(max_length=15, blank=True, null=True)
     data_nacimiento = models.DateField(blank=True, null=True)
     descripcion = models.TextField(blank=True, null=True)
@@ -53,27 +54,80 @@ class PerfilUsuario(models.Model):
     ]
     tipo_vivienda = models.CharField( max_length=20, choices=CASA_CHOICES, blank=True, null=True)
 
-
     class Meta:
         db_table = 'perfil_usuario'
         verbose_name = 'Perfil Usuario'
         verbose_name_plural = 'Perfiles Usuarios'
-        
+
+
 class PerfilProtectora(models.Model):
     usuario = models.OneToOneField(Usuario, on_delete=models.CASCADE, related_name='perfil_protectora')
-        # Camps específics per protectores
-    nombre_protectora = models.CharField(max_length=200, blank=True, null=True)
-    direccion_completa = models.TextField(blank=True, null=True)
-    web = models.URLField(blank=True, null=True)
-    nucleo_zoologico = models.CharField(max_length=20, blank=True, null=True )
     
+    # Información básica
+    nombre_protectora = models.CharField(max_length=200, blank=True, null=True)
+    cif = models.CharField(max_length=20, unique=True, blank=True, null=True)
+    num_registro_asociacion = models.CharField(max_length=100, blank=True, null=True)
+    ENTIDAD_CHOICES = [
+        ('asociacion', 'Asociación'),
+        ('fundacion', 'Fundación'),
+    ]
+    tipo_entidad_juridica = models.CharField(max_length=20, choices=ENTIDAD_CHOICES, blank=True, null=True)
+    
+    
+    # Direcciones
+    direccion_juridica = models.TextField(blank=True, null=True)
+    calle_juridica = models.CharField(max_length=200, blank=True, null=True)
+    numero_juridica = models.CharField(max_length=10, blank=True, null=True)
+    poblacion_juridica = models.CharField(max_length=100, blank=True, null=True)
+    codigo_postal_juridica = models.CharField(max_length=10, blank=True, null=True)
+    
+    direccion_refugio = models.TextField(blank=True, null=True)
+    calle_refugio = models.CharField(max_length=200, blank=True, null=True)
+    numero_refugio = models.CharField(max_length=10, blank=True, null=True)
+    poblacion_refugio = models.CharField(max_length=100, blank=True, null=True)
+    codigo_postal_refugio = models.CharField(max_length=10, blank=True, null=True)
+    
+    # Contacto
+    web = models.URLField(blank=True, null=True)
+    telefono = models.CharField(max_length=15, blank=True, null=True)
+    telefono_emergencia = models.CharField(max_length=15, blank=True, null=True)
+    
+    # Información sobre animales
+    
+    capacidad_maxima_animales = models.IntegerField(blank=True, null=True)
+    ANIMAL_CHOICES = [
+        ('perro', 'Perro'),
+        ('gato', 'Gato'),
+    ]
 
+    tipo_animal = models.CharField(max_length=10, choices=ANIMAL_CHOICES, blank=True, null=True)
+    
+    # Información organizativa
+    ano_fundacion = models.IntegerField(blank=True, null=True)
+    nucleo_zoologico = models.CharField(max_length=50, blank=True, null=True)
+    ambito_geografico = models.CharField(max_length=200, blank=True, null=True)
+    
+    # Servicios y procesos
+    requisitos_adopcion = models.TextField(blank=True, null=True)
+    proceso_adopcion = models.TextField(blank=True, null=True)
+    descripcion = models.TextField(blank=True, null=True)
+    SERVICIOS_CHOICES = [
+        ('recogida', 'Recogida de animales abandonados'),
+        ('alojamiento', 'Alojamiento'),
+        ('esterilizacion', 'Esterilización'),
+        ('localizacion', 'Localización de propietarios'),
+        ('adopcion', 'Adopción'),
+    ]
 
+    servicios = MultiSelectField(choices=SERVICIOS_CHOICES, blank=True)
 
     class Meta:
         db_table = 'perfil_protectora'
         verbose_name = 'Protectora'
         verbose_name_plural = 'Protectoras'
+    
+    def __str__(self):
+        return self.nombre_protectora or self.usuario.username
         
         
 

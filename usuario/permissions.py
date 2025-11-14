@@ -6,7 +6,7 @@ from django.db import models
 #los usuarios pueden ver todas las protectoras
 #las protectoras pueden ver todos los usuarios??????
 #las protectoras pueden ver otras protectoras
-#c ada uno se edita lo suyo
+#cada uno se edita lo suyo
 
 class UsuarioPermissions(BasePermission):
     """
