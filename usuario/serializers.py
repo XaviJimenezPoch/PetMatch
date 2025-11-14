@@ -1,27 +1,21 @@
 from rest_framework import serializers
-from .models import Usuario # Asume que tienes un modelo llamado Usuario
+from .models import Usuario, PerfilUsuario, PerfilProtectora
+import re
 
 class UsuarioSerializer(serializers.ModelSerializer):
-    #recoge los datos del usuario, no debemos mostrar la contraseña
+    """Serializer básico para Usuario"""
     class Meta:
         model = Usuario
-        fields = ('id', 'username', 'email', 'city', 'role', 'date_joined',
-            'telefono', 'data_nacimiento', 'descripcion', 'foto_perfil',
-            'genero', 'necesidades_esp', 'mascota_previa', 'tipo_vivienda',
-            'nombre_protectora', 'direccion_completa', 'web', 'nucleo_zoologico')
+        fields = ('id', 'username', 'email', 'role', 'date_joined', 'is_active')
         read_only_fields = ('id', 'date_joined')
 
-        
 class UsuarioCreateSerializer(serializers.ModelSerializer):
-    #para crear los nuevos usuarios
+    """Para crear nuevos usuarios"""
     password = serializers.CharField(write_only=True, min_length=8)
     
     class Meta:
         model = Usuario
-        fields = ('username', 'password', 'email', 'city', 'role',
-            'telefono', 'data_nacimiento', 'descripcion', 'foto_perfil',
-            'genero', 'necesidades_esp', 'mascota_previa', 'tipo_vivienda',
-            'nombre_protectora', 'direccion_completa', 'web', 'nucleo_zoologico')
+        fields = ('username', 'password', 'email', 'role')
     
     def validate_email(self, value):
         if Usuario.objects.filter(email=value).exists():
@@ -32,13 +26,6 @@ class UsuarioCreateSerializer(serializers.ModelSerializer):
         if Usuario.objects.filter(username=value).exists():
             raise serializers.ValidationError("Este username ya está registrado.")
         return value
-
-    def validate_nucleo_zoologico(self, value):
-        if value and not re.match(r'^ES\d{2}\d{3}C\d{6}$', value):
-            raise serializers.ValidationError(
-                'Formato inválido. Ejemplo: ES12345C000123'
-            )
-        return value
     
     def create(self, validated_data):
         password = validated_data.pop('password')
@@ -46,15 +33,33 @@ class UsuarioCreateSerializer(serializers.ModelSerializer):
         usuario.set_password(password)
         usuario.save()
         return usuario
-class LoginUsuario(serializers.Serializer):
-    #login 
-    email = serializers.CharField()
-    password = serializers.CharField(write_only=True)
 
+class PerfilUsuarioSerializer(serializers.ModelSerializer):
+    """Serializer para perfil de usuario"""
+    usuario = serializers.StringRelatedField(read_only=True)
+    
+    class Meta:
+        model = PerfilUsuario
+        fields = '__all__'
+        read_only_fields = ('usuario',)
+
+class PerfilProtectoraSerializer(serializers.ModelSerializer):
+    """Serializer para perfil de protectora"""
+    usuario = serializers.StringRelatedField(read_only=True)
+    
+    class Meta:
+        model = PerfilProtectora
+        fields = '__all__'
+        read_only_fields = ('usuario',)
+    
+    def validate_nucleo_zoologico(self, value):
+        if value and not re.match(r'^ES\d{2}\d{3}C\d{6}$', value):
+            raise serializers.ValidationError(
+                'Formato inválido. Ejemplo: ES12345C000123'
+            )
+        return value
 
 class LoginSerializer(serializers.Serializer):
-    """
-    Serializer per login
-    """
+    """Serializer para login"""
     username = serializers.CharField()
     password = serializers.CharField(write_only=True)

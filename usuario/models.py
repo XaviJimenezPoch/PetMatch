@@ -19,9 +19,15 @@ class Usuario(AbstractUser):
     
     
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='usuario')
+    USERNAME_FIELD = 'username'
+    
+    class Meta:
+        db_table = 'usuario'
+        verbose_name = 'Usuario'
+        verbose_name_plural = 'Usuarios'
     
 class PerfilUsuario(models.Model):
-        
+    usuario = models.OneToOneField(Usuario, on_delete=models.CASCADE, related_name='perfil_usuario')
     #REGISTRO COMPLETO
     #camps a consensuar entre tots
     telefono = models.CharField(max_length=15, blank=True, null=True)
@@ -47,7 +53,14 @@ class PerfilUsuario(models.Model):
     ]
     tipo_vivienda = models.CharField( max_length=20, choices=CASA_CHOICES, blank=True, null=True)
 
+
+    class Meta:
+        db_table = 'perfil_usuario'
+        verbose_name = 'Perfil Usuario'
+        verbose_name_plural = 'Perfiles Usuarios'
+        
 class PerfilProtectora(models.Model):
+    usuario = models.OneToOneField(Usuario, on_delete=models.CASCADE, related_name='perfil_protectora')
         # Camps específics per protectores
     nombre_protectora = models.CharField(max_length=200, blank=True, null=True)
     direccion_completa = models.TextField(blank=True, null=True)
@@ -55,21 +68,14 @@ class PerfilProtectora(models.Model):
     nucleo_zoologico = models.CharField(max_length=20, blank=True, null=True )
     
 
-    USERNAME_FIELD = 'username'
+
 
     class Meta:
-        db_table = 'usuario'
-        verbose_name = 'Usuario'
-        verbose_name_plural = 'Usuarios'
+        db_table = 'perfil_protectora'
+        verbose_name = 'Protectora'
+        verbose_name_plural = 'Protectoras'
         
         
-        
-        
-
-#INNECESARIO: no necesitamos tantos modelos, ya que de momento 
-#la única relación q hacemos es de uno a uno (un usuario tiene un rol)
-#i puede ser simplificado 
-
 
 
 # class Role(models.Model):
