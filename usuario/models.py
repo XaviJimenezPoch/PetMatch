@@ -4,9 +4,6 @@ from django.contrib.auth.models import AbstractUser
 class Usuario(AbstractUser):
 
     # AbstractUser ya incluye id, password y username (pero username lo dejo)
-    
-    
-    
     #REGISTRO RÁPIDO
     # user_id = models.AutoField(primary_key=True)
     # password = models.CharField(max_length=128)
@@ -15,7 +12,6 @@ class Usuario(AbstractUser):
     city = models.CharField(max_length=100)
 
     ROLE_CHOICES = [
-        
         ('admin', 'Admin'),
         ('usuario', 'Usuario'),
         ('protectora', 'Protectora')
@@ -23,7 +19,8 @@ class Usuario(AbstractUser):
     
     
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='usuario')
-        
+    
+class PerfilUsuario(models.Model):
         
     #REGISTRO COMPLETO
     #camps a consensuar entre tots
@@ -49,12 +46,14 @@ class Usuario(AbstractUser):
         ('finca', 'Finca/Casa rural')
     ]
     tipo_vivienda = models.CharField( max_length=20, choices=CASA_CHOICES, blank=True, null=True)
-            
+
+class PerfilProtectora(models.Model):
         # Camps específics per protectores
     nombre_protectora = models.CharField(max_length=200, blank=True, null=True)
     direccion_completa = models.TextField(blank=True, null=True)
     web = models.URLField(blank=True, null=True)
     nucleo_zoologico = models.CharField(max_length=20, blank=True, null=True )
+    
 
     USERNAME_FIELD = 'username'
 
