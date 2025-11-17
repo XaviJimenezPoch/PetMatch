@@ -12,7 +12,6 @@ router.register(r'protectora-profiles', PerfilProtectoraViewSet)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-     path('usuario/', include('usuario.urls')),
+    path('usuario/', include('usuario.urls')),
     path('mascotas/', include('mascotas.urls')), 
-    path('api/', include('usuario.urls'))
 ]
