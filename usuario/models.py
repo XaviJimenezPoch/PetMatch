@@ -29,22 +29,37 @@ class Usuario(AbstractUser):
     
 class PerfilUsuario(models.Model):
     usuario = models.OneToOneField(Usuario, on_delete=models.CASCADE, related_name='perfil_usuario')
-    # REGISTRO COMPLETO
-    # camps a consensuar entre tots
+
+    # Contacto / ubicación
     telefono = models.CharField(max_length=15, blank=True, null=True)
-    data_nacimiento = models.DateField(blank=True, null=True)
+    barrio = models.CharField(max_length=100, blank=True, null=True)  # ciudad ya esta en Usuario.city
+
+    # Datos personales
+    fecha_nacimiento = models.DateField(blank=True, null=True)
     descripcion = models.TextField(blank=True, null=True)
     foto_perfil = models.ImageField(upload_to='perfils/', blank=True, null=True)
+
+    # Género usuario
     GENERO_CHOICES = [
         ('M', 'Masculí'),
         ('F', 'Femení'),
         ('O', 'Altres'),
         ('N', 'Preferisc no dir-ho')
     ]
-
     genero = models.CharField(max_length=1, choices=GENERO_CHOICES, blank=True, null=True)
-    necesidades_esp = models.BooleanField(default=False)
+
+    # Especie de interés (gato / perro)
+    ESPECIE_CHOICES = [
+        ('perro', 'Perro'),
+        ('gato', 'Gato'),
+    ]
+    especie = models.CharField(max_length=10, choices=ESPECIE_CHOICES, blank=True, null=True)
+
+    # Necesidades y experiencia
+    necesidades_especiales = models.BooleanField(default=False)
     mascota_previa = models.BooleanField(default=False)
+
+    # Vivienda y niños
     CASA_CHOICES = [
         ('apartamento', 'Apartamento'),
         ('casa_pequeña', 'Casa pequeña'),
@@ -52,12 +67,59 @@ class PerfilUsuario(models.Model):
         ('casa_con_jardin', 'Casa con jardín'),
         ('finca', 'Finca/Casa rural')
     ]
-    tipo_vivienda = models.CharField( max_length=20, choices=CASA_CHOICES, blank=True, null=True)
+    tipo_vivienda = models.CharField(max_length=20, choices=CASA_CHOICES, blank=True, null=True)
+    tiene_ninos = models.BooleanField(default=False)
+
+    # Actividad familiar / preferencias para mascota
+    ACTIVIDAD_CHOICES = [
+        ('baja', 'Baja'),
+        ('media', 'Media'),
+        ('alta', 'Alta')
+    ]
+    nivel_actividad_familiar = models.CharField(max_length=10, choices=ACTIVIDAD_CHOICES, blank=True, null=True)
+
+    TAMANO_CHOICES = [
+        ('pequeno', 'Pequeño'),
+        ('mediano', 'Mediano'),
+        ('grande', 'Grande'),
+    ]
+    preferencias_tamano = MultiSelectField(choices=TAMANO_CHOICES, blank=True)
+
+    EDAD_CHOICES = [
+        ('cachorro', 'Cachorro'),
+        ('joven', 'Joven'),
+        ('adulto', 'Adulto'),
+        ('senior', 'Senior'),
+    ]
+    preferencias_edad = MultiSelectField(choices=EDAD_CHOICES, blank=True)
+
+    SEXO_CHOICES = [
+        ('macho', 'Macho'),
+        ('hembra', 'Hembra'),
+    ]
+    preferencias_sexo = MultiSelectField(choices=SEXO_CHOICES, blank=True)
+
+    # Campos específicos
+    deporte_ofrecible = models.CharField(
+        max_length=200,
+        blank=True,
+        null=True,
+        help_text="Deportes/actividades que se le pueden ofrecer (solo para perros)"
+    )
+    tiempo_en_casa_para_gatos = models.CharField(
+        max_length=100,
+        blank=True,
+        null=True,
+        help_text="Tiempo que pasa en casa (útil para gatos)"
+    )
 
     class Meta:
         db_table = 'perfil_usuario'
         verbose_name = 'Perfil Usuario'
         verbose_name_plural = 'Perfiles Usuarios'
+
+    def __str__(self):
+        return self.usuario.username
 
 
 class PerfilProtectora(models.Model):
