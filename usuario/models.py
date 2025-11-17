@@ -32,7 +32,7 @@ class PerfilUsuario(models.Model):
 
     # Contacto / ubicación
     telefono = models.CharField(max_length=15, blank=True, null=True)
-    barrio = models.CharField(max_length=100, blank=True, null=True)  # ciudad ya esta en Usuario.city
+    barrio = models.CharField(max_length=100, blank=True, null=True)  
 
     # Datos personales
     fecha_nacimiento = models.DateField(blank=True, null=True)
