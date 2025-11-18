@@ -33,6 +33,7 @@ class PerfilUsuario(models.Model):
     # Contacto / ubicación
     telefono = models.CharField(max_length=15, blank=True, null=True)
     barrio = models.CharField(max_length=100, blank=True, null=True)  
+    
 
     # Datos personales
     fecha_nacimiento = models.DateField(blank=True, null=True)
@@ -58,6 +59,8 @@ class PerfilUsuario(models.Model):
     # Necesidades y experiencia
     necesidades_especiales = models.BooleanField(default=False)
     mascota_previa = models.BooleanField(default=False)
+    mascota_actual = models.BooleanField(default=False) #añadida
+    casa_acogida = models.BooleanField(default=False) #añadida
 
     # Vivienda y niños
     CASA_CHOICES = [
@@ -174,12 +177,31 @@ class PerfilProtectora(models.Model):
     proceso_adopcion = models.TextField(blank=True, null=True)
     descripcion = models.TextField(blank=True, null=True)
     SERVICIOS_CHOICES = [
-        ('recogida', 'Recogida de animales abandonados'),
-        ('alojamiento', 'Alojamiento'),
-        ('esterilizacion', 'Esterilización'),
-        ('localizacion', 'Localización de propietarios'),
-        ('adopcion', 'Adopción'),
+        ('adopcion', "Adopción"),
+        ("acogida", "Acogida temporal"),
+        ("veterinario", "Veterinario"),
+        ('educacion',"Educación"),
+        ('rehabilitacion',"Rehabilitación"),
+        ('transporte',"Transporte"),
+        ('castracion',"Castración/Esterilitzación"),
+        ('recogida',"Recogida"),
     ]
+    
+    # horarios
+    horario_lunes_apertura = models.TimeField(blank=True, null=True)
+    horario_lunes_cierre = models.TimeField(blank=True, null=True)
+    horario_martes_apertura = models.TimeField(blank=True, null=True)
+    horario_martes_cierre = models.TimeField(blank=True, null=True)
+    horario_miercoles_apertura = models.TimeField(blank=True, null=True)
+    horario_miercoles_cierre = models.TimeField(blank=True, null=True)
+    horario_jueves_apertura = models.TimeField(blank=True, null=True)
+    horario_jueves_cierre = models.TimeField(blank=True, null=True)
+    horario_viernes_apertura = models.TimeField(blank=True, null=True)
+    horario_viernes_cierre = models.TimeField(blank=True, null=True)
+    horario_sabado_apertura = models.TimeField(blank=True, null=True)
+    horario_sabado_cierre = models.TimeField(blank=True, null=True)
+    horario_domingo_apertura = models.TimeField(blank=True, null=True)
+    horario_domingo_cierre = models.TimeField(blank=True, null=True)
 
     servicios = MultiSelectField(choices=SERVICIOS_CHOICES, blank=True)
 
