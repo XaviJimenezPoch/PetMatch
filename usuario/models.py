@@ -194,36 +194,3 @@ class PerfilProtectora(models.Model):
         
 
 
-# class Role(models.Model):
-#     PERMISION_CHOICES = [
-#         (0, 'Admin'),
-#         (1, 'Usuario'),
-#         (2, 'Protectora'),
-# ]
-    
-#     role_name = models.CharField(max_length=50, primary_key=True)
-#     admin = models.IntegerField(choices= PERMISION_CHOICES, default=0)
-#     usuario = models.IntegerField(choices= PERMISION_CHOICES, default=0)
-#     protectora = models.IntegerField(choices= PERMISION_CHOICES, default=0)
-
-#     class Meta:
-#         db_table = 'roles'
-#         verbose_name = 'Rol'
-#         verbose_name_plural = 'Roles'
-    
-#     def __str__(self):
-#         return self.role_name
-    
-# class UserRole(models.Model):
-
-#     usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE)
-#     role = models.ForeignKey(Role, on_delete=models.CASCADE)
-
-#     class Meta:
-#         db_table = 'user_roles'
-#         verbose_name = 'Rol de usuario'
-#         verbose_name_plural = 'Roles de usuario'
-#         unique_together = ('usuario', 'role') # No se le puede poner el mismo rol dos veces al mismo usuario
-
-#     def __str__(self):
-#         return f"{self.user_id.username} - {self.role.role_name}"
