@@ -6,7 +6,7 @@ class UsuarioSerializer(serializers.ModelSerializer):
     """Serializer básico para Usuario"""
     class Meta:
         model = Usuario
-        fields = ('id', 'username', 'email', 'role', 'date_joined', 'is_active')
+        fields = ('id', 'username', 'email', 'role', 'date_joined')
         read_only_fields = ('id', 'date_joined')
 
 class UsuarioCreateSerializer(serializers.ModelSerializer):
@@ -15,7 +15,7 @@ class UsuarioCreateSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Usuario
-        fields = ('username', 'password', 'email', 'role')
+        fields = ('username', 'password', 'email', 'role', 'city')
     
     def validate_email(self, value):
         if Usuario.objects.filter(email=value).exists():

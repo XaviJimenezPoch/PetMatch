@@ -1,23 +1,22 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import UsuarioViewSet, login_view, logout_view, profile_view
+from .views import UsuarioViewSet, PerfilUsuarioViewSet, PerfilProtectoraViewSet
 
 
 router = DefaultRouter()
-router.register(r'usuarios', UsuarioViewSet)
+router.register(r'usuario', UsuarioViewSet)
+router.register(r'perfil-usuario', PerfilUsuarioViewSet)
+router.register(r'perfil-protectora', PerfilProtectoraViewSet)
 
 urlpatterns = [
-    path('', include(router.urls)),  # Endpoints CRUD bàsics
-    path('login/', login_view, name='login'),  # Endpoint per login
-    path('logout/', logout_view, name='logout'),  # Endpoint per logout
-    path('profile/', profile_view, name='profile'),  # Endpoint per obtenir el perfil
-]
+    path("", include(router.urls))
+ ]
 
 
 
 """"
 
-=== API REST USUARIS (Recomanat per React) ===
+===  ===
 GET       /api/usuarios/                          → Llistar usuaris (segons permisos)
 POST      /api/usuarios/                          → Registrar usuari nou
 GET       /api/usuarios/{id}/                     → Obtenir usuari específic
