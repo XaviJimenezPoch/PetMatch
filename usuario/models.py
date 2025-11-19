@@ -11,7 +11,7 @@ class Usuario(AbstractUser):
     # password = models.CharField(max_length=128)
     username = models.CharField(max_length=150, unique=True)
     email = models.EmailField(unique=True)
-    city = models.CharField(max_length=100)
+    # city = models.CharField(max_length=100)
 
     ROLE_CHOICES = [
         ('admin', 'Admin'),
